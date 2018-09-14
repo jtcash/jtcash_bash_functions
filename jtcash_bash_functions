@@ -49,7 +49,6 @@ arg_parse () {
     if [[ -z $arg ]]; then
         ((++index_argument));
         arg="${args[index_argument]}";
-        # declare -p arg;
         [[ -z $arg ]] && print_help_and_exit 1 "could not parse value for '$flag' flag";
     fi;
     ## Write the value back to the variable then increment the original index
@@ -61,7 +60,6 @@ arg_parse () {
 ## Decode SI unit suffixes and return the full integral value
 ## Not all SI units are covered, only ones that will be used in practice
 suffix_decode () {
-    # >&2 echo "#### '$1'"
     [[ $1 =~ ^[1-9][0-9]*[kKmMgGtT]?i?[bB]?$ ]] || { >&2 printf 'ERROR: '%s' is not a valid SI Unit integer\n' "$1"; return 1; };
     local -i x=1000;
     local b="${1/b}";
