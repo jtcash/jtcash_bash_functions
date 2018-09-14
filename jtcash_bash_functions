@@ -41,7 +41,7 @@ arg_parse () {
     #Argn+1     variable name of argument index (integer [1,$#])
     #Argn+2     flag to ignore (ex. -b or --color=)
     #Argn+3     variable name to write parsed value to
-    local -a args=(${@:0:$#-2});
+    local -a args=("${@:0:$#-2}");
     shift $(($#-3));
     local name_index="$1" flag="$2" name_variable="$3";
     local -i index_argument=${!name_index};
@@ -52,6 +52,7 @@ arg_parse () {
         [[ -z $arg ]] && print_help_and_exit 1 "could not parse value for '$flag' flag";
     fi;
     ## Write the value back to the variable then increment the original index
+    declare -p arg
     printf -v "$name_variable" '%s' "$arg";
     ((${name_index} = index_argument));
 }
