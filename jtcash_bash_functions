@@ -1,0 +1,84 @@
+#!/bin/bash
+
+declare NEEDS_JTCASH_FUNCTIONS=true;
+
+
+## Get the size of file(s) in bytes
+dusb () { 
+    stat --printf='%s' "$1";
+
+    [[ $# -gt 1 ]] && printf ' ' && "$FUNC_NAME[0]" "${@:2}" || printf '\n';
+};
+
+## Find the bitrate of the first video stream in video(s)
+find_video_bitrate () {
+    local found_vid=false;
+    local line;
+    local -i bit_rate=-1;
+    while read line; do
+        if $found_vid; then
+            if [[ $line =~ ^bit_rate ]]; then
+                line="${line##*=}";
+                bit_rate=${line//[!0-9]};
+                
+                break;
+            fi;
+        else
+            [[ $line =~ ^codec_type=video ]] && found_vid=true;
+        fi;
+    done < <(ffprobe -hide_banner -show_streams "$1" 2>/dev/null);
+    printf '%d' $bit_rate;
+
+    [[ $# -gt 1 ]] && printf ' ' && "$FUNC_NAME[0]" "${@:2}" || printf '\n';
+};
+
+
+
+## A simple utility to parse argument flags using only builtin commands
+## for use in for ((i=0;i<=$#;++i)) loops
+arg_parse () {
+    #Arg1...n   the bash script arguments
+    #Argn+1     variable name of argument index (integer [1,$#])
+    #Argn+2     flag to ignore (ex. -b or --color=)
+    #Argn+3     variable name to write parsed value to
+    local -a args=(${@:0:$#-2});
+    shift $(($#-3));
+    local name_index="$1" flag="$2" name_variable="$3";
+    local -i index_argument=${!name_index};
+    local arg="${args[index_argument]#$flag}";
+    if [[ -z $arg ]]; then
+        ((++index_argument));
+        arg="${args[index_argument]}";
+        # declare -p arg;
+        [[ -z $arg ]] && print_help_and_exit 1 "could not parse value for '$flag' flag";
+    fi;
+    ## Write the value back to the variable then increment the original index
+    printf -v "$name_variable" '%s' "$arg";
+    ((${name_index} = index_argument));
+}
+
+
+## Decode SI unit suffixes and return the full integral value
+## Not all SI units are covered, only ones that will be used in practice
+suffix_decode () {
+    # >&2 echo "#### '$1'"
+    [[ $1 =~ ^[1-9][0-9]*[kKmMgGtT]?i?[bB]?$ ]] || { >&2 printf 'ERROR: '%s' is not a valid SI Unit integer\n' "$1"; return 1; };
+    local -i x=1000;
+    local b="${1/b}";
+    [[ $b =~ i ]] && { b="${b/i}"; x=1024; };
+    b="${b//[tT]/*${x}G}";
+    b="${b//[gG]/*${x}M}";
+    b="${b//[mM]/*${x}k}";
+    b="${b//[kK]/*${x}}";
+   
+    printf '%d' $((${b/B/*8}));
+
+    [[ $# -gt 1 ]] && printf ' ' && "$FUNC_NAME[0]" "${@:2}" || printf '\n';
+};
+
+
+
+
+
+## only set it at the end if success
+NEEDS_JTCASH_FUNCTIONS=false;
