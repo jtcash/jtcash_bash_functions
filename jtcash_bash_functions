@@ -80,3 +80,4 @@ suffix_decode () {
 
 ## only set it at the end if success
 NEEDS_JTCASH_FUNCTIONS=false;
+
