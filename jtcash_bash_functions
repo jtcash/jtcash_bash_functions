@@ -52,7 +52,6 @@ arg_parse () {
         [[ -z $arg ]] && print_help_and_exit 1 "could not parse value for '$flag' flag";
     fi;
     ## Write the value back to the variable then increment the original index
-    declare -p arg
     printf -v "$name_variable" '%s' "$arg";
     ((${name_index} = index_argument));
 }
